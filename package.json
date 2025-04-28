@@ -16,5 +16,12 @@
     "url": "https://github.com/DamienLove/pc-operator/issues"
   },
   "homepage": "https://github.com/DamienLove/pc-operator#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.3.0",
+    "firebase-functions": "^6.3.2"
+  }
 }
