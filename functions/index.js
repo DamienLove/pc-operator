@@ -5,11 +5,12 @@ const functions = require('firebase-functions');
 const admin     = require('firebase-admin');
 const cors      = require('cors')({ origin: true });
 
-// Explicitly initialize with your project ID
-admin.initializeApp({
-  projectId: 'pc-operator-d54c0'
-});
+// **Only** specify projectId for Firestore
+admin.initializeApp({ projectId: 'pc-operator-d54c0' });
 const db = admin.firestore();
+
+// ... rest of your handler unchanged
+
 
 exports.enqueueCommand = functions.https.onRequest((req, res) => {
   cors(req, res, async () => {
