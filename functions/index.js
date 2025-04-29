@@ -1,46 +1,54 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+// pc-operator/functions/index.js
+
 require('dotenv').config();
 const functions = require('firebase-functions');
 const admin     = require('firebase-admin');
-const cors      = require('cors')({origin: true});
+const cors      = require('cors')({ origin: true });
 
+// Initialize Firebase Admin with default credentials
 admin.initializeApp();
 const db = admin.firestore();
 
-// POST /enqueueCommand  {action:"ahk", payload:{script:"MsgBox Hi!"}}
+// HTTPS function to enqueue commands
 exports.enqueueCommand = functions.https.onRequest((req, res) => {
   cors(req, res, async () => {
-    if (req.method !== 'POST') return res.status(405).send('Use POST');
+    try {
+      console.log('Headers:', req.headers);
+      console.log('Body   :', req.body);
 
-    if (req.get('x-api-key') !== process.env.API_SECRET)
-      return res.status(401).send('Bad key');
+      // Only POST
+      if (req.method !== 'POST') {
+        console.error('Wrong method:', req.method);
+        return res.status(405).send('Use POST');
+      }
 
-    const body = req.body;
-    if (!body?.action) return res.status(400).send('Missing action');
+      // Auth check
+      const apiKey = req.get('x-api-key');
+      if (!apiKey || apiKey !== process.env.API_SECRET) {
+        console.error('Bad API key:', apiKey);
+        return res.status(401).send('Bad key');
+      }
 
-    const ref = await db.collection('commands').add({
-      ...body,
-      status: 'new',
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-    res.json({id: ref.id});
+      // Validate body
+      const { action, payload } = req.body;
+      if (!action || !payload) {
+        console.error('Missing action or payload:', req.body);
+        return res.status(400).send('Missing action/payload');
+      }
+
+      // Enqueue into Firestore
+      const docRef = await db.collection('commands').add({
+        action,
+        payload,
+        status: 'new',
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      console.log('Enqueued job ID:', docRef.id);
+      return res.json({ id: docRef.id });
+
+    } catch (err) {
+      console.error('Unhandled error:', err);
+      return res.status(500).send('Internal Server Error');
+    }
   });
 });
-
-const {onRequest} = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
-
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
-
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
