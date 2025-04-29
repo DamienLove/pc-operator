@@ -9,14 +9,14 @@ const cors      = require('cors')({ origin: true });
 admin.initializeApp();
 const db = admin.firestore();
 
-// HTTPS function to enqueue commands
+// Single HTTPS function to enqueue commands
 exports.enqueueCommand = functions.https.onRequest((req, res) => {
   cors(req, res, async () => {
     try {
       console.log('Headers:', req.headers);
       console.log('Body   :', req.body);
 
-      // Only POST
+      // Only POST allowed
       if (req.method !== 'POST') {
         console.error('Wrong method:', req.method);
         return res.status(405).send('Use POST');
@@ -36,7 +36,8 @@ exports.enqueueCommand = functions.https.onRequest((req, res) => {
         return res.status(400).send('Missing action/payload');
       }
 
-      // Enqueue into Firestore
+      // Log before Firestore write
+      console.log('About to add to Firestore…');
       const docRef = await db.collection('commands').add({
         action,
         payload,
@@ -44,10 +45,10 @@ exports.enqueueCommand = functions.https.onRequest((req, res) => {
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
       console.log('Enqueued job ID:', docRef.id);
-      return res.json({ id: docRef.id });
 
+      return res.json({ id: docRef.id });
     } catch (err) {
-      console.error('Unhandled error:', err);
+      console.error('ERROR STACK:', err.stack || err);
       return res.status(500).send('Internal Server Error');
     }
   });
