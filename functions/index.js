@@ -5,38 +5,35 @@ const functions = require('firebase-functions');
 const admin     = require('firebase-admin');
 const cors      = require('cors')({ origin: true });
 
-// Initialize Firebase Admin with default credentials
-admin.initializeApp();
+// Explicitly initialize with your project ID
+admin.initializeApp({
+  projectId: 'pc-operator-d54c0'
+});
 const db = admin.firestore();
 
-// Single HTTPS function to enqueue commands
 exports.enqueueCommand = functions.https.onRequest((req, res) => {
   cors(req, res, async () => {
     try {
       console.log('Headers:', req.headers);
       console.log('Body   :', req.body);
 
-      // Only POST allowed
       if (req.method !== 'POST') {
         console.error('Wrong method:', req.method);
         return res.status(405).send('Use POST');
       }
 
-      // Auth check
       const apiKey = req.get('x-api-key');
       if (!apiKey || apiKey !== process.env.API_SECRET) {
         console.error('Bad API key:', apiKey);
         return res.status(401).send('Bad key');
       }
 
-      // Validate body
       const { action, payload } = req.body;
       if (!action || !payload) {
         console.error('Missing action or payload:', req.body);
         return res.status(400).send('Missing action/payload');
       }
 
-      // Log before Firestore write
       console.log('About to add to Firestore…');
       const docRef = await db.collection('commands').add({
         action,
