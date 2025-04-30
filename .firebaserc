@@ -1,8 +1,6 @@
 {
   "projects": {
     "default": "pc-operator-d54c0",
-    "Error: Failed to authenticate, have you run firebase login?": "guardian-angel-ncg9y",
-    "n]": "guardian-angel-ncg9y",
     "pc operator": "pc-operator-d54c0"
   },
   "targets": {},

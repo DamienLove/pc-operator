@@ -3,6 +3,9 @@
     {
       "source": "functions",
       "codebase": "default",
+      // Pin to Node 22 Gen-2
+      "runtime": "nodejs22",
+      // Remove any cpu/memory fields
       "ignore": [
         "node_modules",
         ".git",
